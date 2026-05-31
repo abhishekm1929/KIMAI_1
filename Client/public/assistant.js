@@ -124,7 +124,7 @@
 
     const loadAssistant = async () => {
         try {
-            const res = await fetch(`https://kimai-1.onrender.com/api/assistant/config/${userId}`)
+            const res = await fetch(`https://kimai-1-backend.onrender.com/api/assistant/config/${userId}`)
 
             const data = await res.json()
 
