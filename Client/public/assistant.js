@@ -240,107 +240,114 @@
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
 
 
-    if(SpeechRecognition){
+    if (SpeechRecognition) {
 
         const recognition = new SpeechRecognition();
 
         recognition.lang =
-      "en-US";
+            "en-US";
 
-    recognition.continuous =
-      false;
+        recognition.continuous =
+            false;
 
-    recognition.interimResults =
-      false;
-
-
-      mic.onclick=()=>{
-        wave.style.opacity =
-        "1";
-
-      status.innerText =
-        "Listening...";
-
-      userText.innerText =
-        "";
-
-      aiText.innerText =
-        "";
-
-      recognition.start();
-      }
+        recognition.interimResults =
+            false;
 
 
-      recognition.onresult = (e)=>{
-        const text = e.results[0][0].transcript
+        mic.onclick = () => {
+            wave.style.opacity =
+                "1";
 
-        userText.innerText = "You: " + text;
+            status.innerText =
+                "Listening...";
 
-        recognition.stop();
+            userText.innerText =
+                "";
+
+            aiText.innerText =
+                "";
+
+            recognition.start();
+        }
 
 
-        setTimeout( async () => {
-            try {
-                status.innerText = "Thinking...";
-                
+        recognition.onresult = (e) => {
+            const text = e.results[0][0].transcript
 
-                const res = await fetch("https://kimai-1.onrender.com/api/assistant/ask" , {
-                    method:"POST",
-                    headers:{
-                        "Content-Type":
-                      "application/json",
-                    } ,
-                    body:JSON.stringify({
-                        message:text,
-                        userId
-                    })
-                })
+            userText.innerText = "You: " + text;
 
-                const data = await res.json()
-                console.log(data)
+            recognition.stop();
 
-                if(data.success){
 
-                    if(data.action === "navigate"){
-                        speak(data.response)
+            setTimeout(async () => {
+                try {
+                    status.innerText = "Thinking...";
 
-                        setTimeout(()=>{
-                            window.location.href = data.path
 
-                        },1500)
+                    const res = await fetch("https://kimai-1-backend.onrender.com/api/assistant/ask", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            message: text,
+                            userId
+                        })
+                    });
 
-                    }else{
-                        speak(data.aiResponse)
+                    console.log("Status:", res.status);
+
+                    const responseText = await res.text();
+                    console.log("Response:", responseText);
+
+                    const data = responseText
+                        ? JSON.parse(responseText)
+                        : {};
+
+                    console.log(data);
+
+                    if (data.success) {
+
+                        if (data.action === "navigate") {
+                            speak(data.response)
+
+                            setTimeout(() => {
+                                window.location.href = data.path
+
+                            }, 1500)
+
+                        } else {
+                            speak(data.aiResponse)
+                        }
+
+                    } else {
+                        speak("Response Error please Check your plan")
+
                     }
 
-                }else{
-                    speak("Response Error please Check your plan")
+
+
+                } catch (error) {
+                    console.log(error)
+                    speak("AI Server Error")
 
                 }
+            }, 600)
+        };
 
+        recognition.onerror = () => {
+            status.innerText =
+                "Tap button to Speak";
 
-
-            } catch (error) {
-                console.log(error)
-                speak("AI Server Error")
-                
-            }
-        },600)
-      };
-
-      recognition.onerror = ()=>{
-        status.innerText =
-          "Tap button to Speak";
-
-        wave.style.opacity =
-          "0";
-      }
+            wave.style.opacity =
+                "0";
+        }
 
 
     }
-    else{
+    else {
         status.innerText =
-      "Speech Recognition not supported";
+            "Speech Recognition not supported";
     }
 
 
